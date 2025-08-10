@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESCAPE CHALLENGE</title>
+    <style>
+		body { padding-top: 50px; font-family: Arial, sans-serif; text-align: center; }
+		table { border-collapse: collapse; margin: auto; width: 80%; }
+		th, td { border: 1px solid black; padding: 8px; }
+		th { background-color: #f2f2f2; text-align: center; }
+		td:nth-child(1) { text-align: left; } /* Activity column left-aligned */
+		td:nth-child(2), td:nth-child(3) { text-align: center; }
+		input[type="number"] { width: 60px; text-align: center; }
+		input[type="text"] { width: 100px; text-align: center; }
+		h2 { margin-top: 20px; }
+	</style>
+	<meta charset="UTF-8">
+</head>
+<body>
+	<!-- Header with logo and title -->
+	<div style="display: flex; align-items: center; gap: 15px; justify-content: center; margin-bottom: 20px;">
+		<img src="logo.jpeg" alt="Logo" style="height: 100px;">
+		<h1 style="margin: 0; font-family: Arial, sans-serif; font-size: 32px; font-weight: bold;">
+			ESCAPE CHALLENGE
+		</h1>
+	</div>
+
+    <label for="teamNo"><b>Team No. :</b></label>
+    <input type="text" id="teamNo" name="teamNo" required><br><br>
+
+    <form id="challengeForm">
+        <table>
+            <tr>
+                <th>Activity</th>
+                <th>Pts</th>
+                <th>No. of Pax</th>
+            </tr>
+            <tr>
+                <td>Monkey Business - Lvl 1</td>
+                <td>1</td>
+                <td><input type="number" name="pax[]" min="0" max="20" value="0" data-points="1"></td>
+            </tr>
+            <tr>
+                <td>Monkey Business - Lvl 2</td>
+                <td>2</td>
+                <td><input type="number" name="pax[]" min="0" max="20" value="0" data-points="2"></td>
+            </tr>
+            <tr>
+                <td>Monkey Business - Lvl 3</td>
+                <td>3</td>
+                <td><input type="number" name="pax[]" min="0" max="20" value="0" data-points="3"></td>
+            </tr>
+            <tr>
+                <td>Atan’s Leap</td>
+                <td>2</td>
+                <td><input type="number" name="pax[]" min="0" max="20" value="0" data-points="2"></td>
+            </tr>
+            <tr>
+                <td>Gecko Tower - Lvl 1</td>
+                <td>1</td>
+                <td><input type="number" name="pax[]" min="0" max="20" value="0" data-points="1"></td>
+            </tr>
+            <tr>
+                <td>Gecko Tower - Lvl 2</td>
+                <td>2</td>
+                <td><input type="number" name="pax[]" min="0" max="20" value="0" data-points="2"></td>
+            </tr>
+            <tr>
+                <td>Aerobat - Basic Swing</td>
+                <td>1</td>
+                <td><input type="number" name="pax[]" min="0" max="20" value="0" data-points="1"></td>
+            </tr>
+            <tr>
+                <td>Aerobat - Knee Hang</td>
+                <td>1</td>
+                <td><input type="number" name="pax[]" min="0" max="20" value="0" data-points="1"></td>
+            </tr>
+            <tr>
+                <td>Aerobat - Backflip</td>
+                <td>1</td>
+                <td><input type="number" name="pax[]" min="0" max="20" value="0" data-points="1"></td>
+            </tr>
+            <tr>
+                <th>TOTAL POINTS</th>
+                <th id="totalPoints">0</th>
+                <th></th>
+            </tr>
+        </table>
+        <br>
+        <button type="submit" 
+        style="font-size: 20px; padding: 10px 20px; background-color: #4caf50; 
+               color: white; border: none; border-radius: 5px; cursor: pointer;">
+    	Submit
+</button>
+    </form>
+
+	<p id="message" style="font-weight: bold;"></p>
+
+	<script>
+		const form = document.getElementById('challengeForm');
+		const inputs = form.querySelectorAll('input[type="number"]');
+		const totalPointsDisplay = document.getElementById('totalPoints');
+		const messageDisplay = document.getElementById('message');
+	
+		function calculateTotal() {
+			let total = 0;
+			inputs.forEach(input => {
+				const pax = parseInt(input.value) || 0;
+				const points = parseInt(input.dataset.points);
+				total += pax * points;
+			});
+			totalPointsDisplay.textContent = total;
+		}
+	
+		inputs.forEach(input => input.addEventListener('input', calculateTotal));
+	
+		form.addEventListener('submit', function(e) {
+			e.preventDefault();
+	
+			// Reset message
+			messageDisplay.textContent = "";
+			messageDisplay.style.color = "red";
+	
+			// Validation for Team No.
+			const teamNo = document.getElementById('teamNo').value.trim();
+			if (teamNo === "") {
+				messageDisplay.textContent = "Submission Failed: Team No. is required.";
+				return;
+			}
+	
+			// Validation for No. of Pax range
+			for (let input of inputs) {
+				const pax = parseInt(input.value) || 0;
+				if (pax < 0 || pax > 20) {
+					messageDisplay.textContent = "Submission Failed: No. of Pax must be between 0 and 20.";
+					return;
+				}
+			}
+	
+			const data = {
+				teamNo: teamNo,
+				activities: [],
+				totalPoints: totalPointsDisplay.textContent
+			};
+	
+			form.querySelectorAll('tr').forEach((row, index) => {
+				if (index > 0 && index <= 9) { 
+					const cells = row.querySelectorAll('td');
+					data.activities.push({
+						activity: cells[0].textContent,
+						points: cells[1].textContent,
+						pax: cells[2].querySelector('input').value
+					});
+				}
+			});
+	
+			// SEND to Google Sheets via Apps Script Web App
+			fetch("https://script.google.com/macros/s/AKfycbwoTMnV1-mhnbRtQJ-356r8eVVInvxxqupDyQV2osiK6_cJjuV54xpVYRDPpIZAFWo/exec", {
+				method: "POST",
+				mode: "no-cors",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data)
+			})
+			.then(() => {
+				// Add success=1 to the URL so thanks.html can detect it
+				window.location.href = "thanks.html?success=1";
+			})
+			.catch(() => {
+				window.location.href = "thanks.html?success=0";
+			});
+		});
+	</script>
+</body>
+</html>

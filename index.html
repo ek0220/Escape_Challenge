@@ -1,83 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESCAPE CHALLENGE</title>
-    <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      text-align: center;
-    }
-    table {
-      width: 70%;
-      margin: auto;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #000;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    .header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .header img {
-      width: 80px;
-      height: auto;
-      margin-right: 20px;
-    }
-    .form-section {
-      margin-bottom: 20px;
-      font-size: 18px;
-    }
-    .form-section input {
-      padding: 5px;
-      font-size: 16px;
-    }
-    input[type="number"] {
-      width: 60px;
-    }
-    button {
-      background-color: green;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      cursor: pointer;
-      font-size: 20px;
-      border-radius: 5px;
-    }
+<head>
+  <meta charset="UTF-8">
+  <title>ESCAPE CHALLENGE</title>
+  <style>
+    body { padding: 20px; font-family: Arial, sans-serif; text-align: center; }
+    table { border-collapse: collapse; margin: auto; width: 80%; }
+    th, td { border: 1px solid black; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    input { padding: 5px; margin: 5px; }
+    #totalPoints { font-weight: bold; font-size: 18px; }
   </style>
 </head>
 <body>
 
-  <div style="display: flex; align-items: center; gap: 15px; justify-content: center; margin-bottom: 20px;">
-    <img src="logo.jpeg" alt="Logo" style="height: 100px;">
-    <h1 style="margin: 0; font-family: Arial, sans-serif; font-size: 32px; font-weight: bold;">
-      ESCAPE CHALLENGE
-    </h1>
-  </div>
-
-  <div class="form-section">
-    <label for="teamNo" style="font-weight:bold; margin-right:10px;">Team No. :</label>
-    <input type="number" id="teamNo" required style="margin-right:50px;">
-    <label for="companyName" style="font-weight:bold; margin-right:10px;">Company Name :</label>
-    <input type="text" id="companyName" required>
-  </div>
+  <h1>ESCAPE CHALLENGE</h1>
 
   <form id="challengeForm">
+    <label>Team No.: </label>
+    <input type="number" id="teamNo" name="teamNo" min="1" required><br>
+
+    <label>Company Name: </label>
+    <input type="text" id="companyName" name="companyName" required><br><br>
+
     <table>
       <thead>
         <tr>
           <th>Activity</th>
-          <th>Pts</th>
+          <th>Points</th>
           <th>No. of Pax</th>
         </tr>
       </thead>
@@ -92,82 +42,67 @@
         <tr><td>Aerobat - Knee Hang</td><td>1</td><td><input type="number" min="0" max="20" value="0" class="pax"></td></tr>
         <tr><td>Aerobat - Backflip</td><td>1</td><td><input type="number" min="0" max="20" value="0" class="pax"></td></tr>
       </tbody>
-      <tfoot>
-        <tr>
-          <td colspan="2"><strong>TOTAL POINTS</strong></td>
-          <td id="totalPoints">0</td>
-        </tr>
-      </tfoot>
     </table>
-    <br>
+
+    <p>Total Points: <span id="totalPoints">0</span></p>
     <button type="submit">Submit</button>
   </form>
 
   <script>
-    const paxInputs = document.querySelectorAll('.pax');
-    const totalPointsCell = document.getElementById('totalPoints');
+    const tableBody = document.getElementById("tableBody");
+    const totalPointsCell = document.getElementById("totalPoints");
 
-    paxInputs.forEach(input => {
-      input.addEventListener('input', calculateTotal);
-    });
-
-    function calculateTotal() {
+    // Recalculate total when user changes Pax
+    tableBody.addEventListener("input", () => {
       let total = 0;
-      const rows = document.querySelectorAll('#tableBody tr');
-      rows.forEach((row) => {
-        const pts = parseInt(row.cells[1].innerText);
-        const pax = parseInt(row.querySelector('.pax').value);
-        total += pts * pax;
+      document.querySelectorAll("#tableBody tr").forEach(row => {
+        const points = parseInt(row.cells[1].innerText);
+        const pax = parseInt(row.querySelector(".pax").value) || 0;
+        total += points * pax;
       });
       totalPointsCell.textContent = total;
-    }
+    });
 
-    document.getElementById('challengeForm').addEventListener('submit', function(e) {
+    // Handle submit
+    document.getElementById("challengeForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const teamNo = document.getElementById('teamNo').value;
-      const companyName = document.getElementById('companyName').value;
+      const teamNo = document.getElementById("teamNo").value;
+      const companyName = document.getElementById("companyName").value;
       const totalPoints = totalPointsCell.textContent;
 
-      if (!teamNo || !companyName) {
-        alert("Please fill in Team No. and Company Name");
-        return;
-      }
+      const formData = new FormData();
+      formData.append("teamNo", teamNo);
+      formData.append("companyName", companyName);
+      formData.append("totalPoints", totalPoints);
 
-      const data = { teamNo, companyName, totalPoints, activities: [] };
-      const rows = document.querySelectorAll('#tableBody tr');
-      rows.forEach((row) => {
+      // Add activity rows
+      document.querySelectorAll("#tableBody tr").forEach((row, index) => {
         const activity = row.cells[0].innerText;
         const pts = row.cells[1].innerText;
-        const pax = row.querySelector('.pax').value;
-        data.activities.push({ activity, pts, pax });
+        const pax = row.querySelector(".pax").value;
+        formData.append(`activity_${index}`, activity);
+        formData.append(`pts_${index}`, pts);
+        formData.append(`pax_${index}`, pax);
       });
 
-      console.log(data);
+      // 🔗 Replace with your actual Google Apps Script Web App URL
+      const scriptURL = "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
 
-      const scriptURL = "https://script.google.com/macros/s/AKfycbxQTSqYQvj1f6BOYK-flLnD9BV3Sy6w1B0RbrUqGUFtH7GfVwhZuNOlGuaUCKRFE8t3/exec";
-
-      fetch(scriptURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      })
-      .then(response => response.text())
-      .then(result => {
-        console.log("Server Response:", result);
-        alert("✅ Data sent successfully!");
-
-        if (parseInt(totalPoints) > 0) {
-          window.location.href = "success.html";
-        } else {
-          window.location.href = "fail.html";
-        }
-      })
-      .catch(error => {
-        console.error("❌ Error sending data:", error);
-        alert("Failed to send data. Check console for details.");
-      });
-   });
+      fetch(scriptURL, { method: "POST", body: formData })
+        .then(res => res.text())
+        .then(result => {
+          if (parseInt(totalPoints) > 0) {
+            window.location.href = "success.html";  // GitHub Pages file
+          } else {
+            window.location.href = "fail.html";     // GitHub Pages file
+          }
+        })
+        .catch(err => {
+          console.error("Error:", err);
+          alert("❌ Failed to send data.");
+        });
+    });
   </script>
 </body>
 </html>
